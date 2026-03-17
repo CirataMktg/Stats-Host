@@ -1,0 +1,361 @@
+<!--
+  ============================================================
+  MARKETING ANALYTICS DASHBOARD — EMBEDDABLE SNIPPET
+  ============================================================
+  HOW TO USE:
+  1. Paste this entire block anywhere inside your landing page's <body>
+  2. The Google Fonts <link> below should go in your <head> if possible,
+     or leave it here — it will still work either way.
+  3. Upload your three JSON files to your server at:
+       /data/linkedin.json
+       /data/meta.json
+       /data/website.json
+     (or update the DATA_SOURCES paths in the <script> to match your server structure)
+  4. Update those JSON files each week with your real numbers.
+  ============================================================
+-->
+
+<!-- Fonts (move to <head> if preferred) -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<style>
+/* Scoped to .mktg-dash to avoid conflicts with your existing page styles */
+.mktg-dash *, .mktg-dash *::before, .mktg-dash *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+.mktg-dash {
+  --indigo:   #070d32;
+  --cerulean: #27aae1;
+  --steel:    #4a4a5f;
+  --jam:      #601d55;
+
+  --bg:       #f2f4f8;
+  --surface:  #ffffff;
+  --surface2: #f7f8fb;
+  --surface3: #eceef5;
+  --border:   rgba(7,13,50,0.08);
+  --border2:  rgba(7,13,50,0.16);
+  --text:     #070d32;
+  --muted:    #4a4a5f;
+  --faint:    #9898aa;
+
+  --li-glow:    rgba(39,170,225,0.10);
+  --meta-glow:  rgba(7,13,50,0.07);
+  --web-glow:   rgba(96,29,85,0.08);
+
+  --up:      #1a7f5a;
+  --down:    #c0392b;
+  --neutral: #9898aa;
+
+  --font: 'DM Sans', sans-serif;
+  --mono: 'DM Mono', monospace;
+  --radius: 14px;
+  --radius-sm: 8px;
+
+  font-family: var(--font);
+  color: var(--text);
+  padding: 32px 24px;
+  background: var(--bg);
+}
+
+.mktg-dash .dash-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.mktg-dash .dash-title {
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  color: #070d32;
+}
+.mktg-dash .dash-sub   { font-size: 13px; color: var(--muted); margin-top: 3px; }
+.mktg-dash .week-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  background: var(--surface2);
+  border: 1px solid var(--border2);
+  border-radius: 20px;
+  padding: 5px 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mktg-dash .platforms {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+
+.mktg-dash .platform-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  transition: border-color 0.2s;
+}
+.mktg-dash .platform-card:hover { border-color: var(--border2); }
+.mktg-dash .platform-card.li-card   { border-top: 3px solid #27aae1; }
+.mktg-dash .platform-card.meta-card { border-top: 3px solid #070d32; }
+.mktg-dash .platform-card.web-card  { border-top: 3px solid #601d55; }
+
+.mktg-dash .platform-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 24px 18px;
+  border-bottom: 1px solid var(--border);
+}
+.mktg-dash .platform-icon {
+  width: 36px; height: 36px;
+  border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.mktg-dash .platform-icon svg { width: 18px; height: 18px; }
+.mktg-dash .li-icon   { background: var(--li-glow);   border: 1px solid rgba(39,170,225,0.25); }
+.mktg-dash .meta-icon { background: var(--meta-glow); border: 1px solid rgba(7,13,50,0.15);   }
+.mktg-dash .web-icon  { background: var(--web-glow);  border: 1px solid rgba(96,29,85,0.20);  }
+.mktg-dash .platform-name { font-size: 15px; font-weight: 600; }
+.mktg-dash .platform-desc { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.mktg-dash .data-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--muted);
+  background: var(--surface3);
+  border-radius: 4px;
+  padding: 3px 8px;
+  border: 1px solid var(--border);
+}
+
+.mktg-dash .stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1px;
+  background: var(--border);
+}
+.mktg-dash .stat-cell {
+  background: var(--surface);
+  padding: 18px 20px;
+}
+.mktg-dash .stat-cell:hover { background: #fafaf8; }
+
+.mktg-dash .stat-label {
+  font-size: 11px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+.mktg-dash .stat-period {
+  display: inline-block;
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  margin-left: 6px;
+  font-family: var(--mono);
+  text-transform: none;
+  letter-spacing: 0;
+  vertical-align: middle;
+  font-weight: 400;
+}
+.mktg-dash .period-week  { background: rgba(7,13,50,0.06); color: var(--muted); }
+.mktg-dash .period-month { background: rgba(7,13,50,0.04); color: var(--faint); }
+
+.mktg-dash .stat-value {
+  font-size: 26px;
+  font-weight: 600;
+  letter-spacing: -0.5px;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+.mktg-dash .li-accent   .stat-value { color: #27aae1; }
+.mktg-dash .meta-accent .stat-value { color: #070d32; }
+.mktg-dash .web-accent  .stat-value { color: #601d55; }
+
+.mktg-dash .stat-mom {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-family: var(--mono);
+}
+.mktg-dash .mom-up      { color: var(--up); }
+.mktg-dash .mom-down    { color: var(--down); }
+.mktg-dash .mom-neutral { color: var(--neutral); }
+.mktg-dash .mom-label   { color: var(--faint); font-size: 10px; margin-left: 2px; }
+
+.mktg-dash .stat-monthly     { margin-top: 6px; font-size: 13px; color: var(--muted); }
+.mktg-dash .stat-monthly-val { font-weight: 600; color: var(--text); opacity: 0.7; }
+
+.mktg-dash .last-updated {
+  margin-top: 28px;
+  text-align: right;
+  font-size: 11px;
+  color: var(--faint);
+  font-family: var(--mono);
+}
+
+@media (min-width: 900px) {
+  .mktg-dash .platforms   { grid-template-columns: repeat(3, 1fr); }
+  .mktg-dash .stats-grid  { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .mktg-dash              { padding: 20px 16px; }
+  .mktg-dash .stats-grid  { grid-template-columns: 1fr 1fr; }
+}
+</style>
+
+<!-- Dashboard markup -->
+<div class="mktg-dash">
+  <div class="dash-header">
+    <div>
+      <div class="dash-title">Marketing Analytics</div>
+      <div class="dash-sub">LinkedIn · Meta · Website</div>
+    </div>
+    <div class="week-badge" id="mktg-week-label">Loading…</div>
+  </div>
+  <div class="platforms" id="mktg-platforms"></div>
+  <div class="last-updated" id="mktg-last-updated"></div>
+</div>
+
+<script>
+(function () {
+  // ── CONFIG: update paths to match your server ──
+  const DATA_SOURCES = {
+    linkedin: './data/linkedin.json',
+    meta:     './data/meta.json',
+    website:  './data/website.json'
+  };
+
+  // ── FALLBACK DEMO DATA (shown if JSON files aren't found) ──
+  const DEMO_DATA = {
+    linkedin: {
+      platform: "LinkedIn", description: "Company page & posts",
+      week_label: "Week of Mar 10–16, 2025", last_updated: "2025-03-17",
+      metrics: [
+        { label: "Impressions",     week: 14820, month: 52300,  prev_month: 47100 },
+        { label: "Engagements",     week: 934,   month: 3410,   prev_month: 2980  },
+        { label: "Engagement Rate", week: "6.3%", month: "6.5%", prev_month: "6.3%", format: "rate" },
+        { label: "Comments",        week: 74,    month: 268,    prev_month: 214   },
+        { label: "Reposts",         week: 41,    month: 153,    prev_month: 119   },
+        { label: "Followers",       week: 87,    month: 312,    prev_month: 275   },
+        { label: "Profile Views",   week: 640,   month: 2180,   prev_month: 2450  },
+        { label: "Post Clicks",     week: 412,   month: 1530,   prev_month: 1190  }
+      ]
+    },
+    meta: {
+      platform: "Meta", description: "Facebook & Instagram",
+      week_label: "Week of Mar 10–16, 2025", last_updated: "2025-03-17",
+      metrics: [
+        { label: "Reach",        week: 38400, month: 141200, prev_month: 128800 },
+        { label: "Impressions",  week: 62100, month: 228000, prev_month: 201500 },
+        { label: "Engagements",  week: 2140,  month: 8760,   prev_month: 7340   },
+        { label: "Page Likes",   week: 54,    month: 198,    prev_month: 223    },
+        { label: "Conversions",  week: 31,    month: 117,    prev_month: 98     }
+      ]
+    },
+    website: {
+      platform: "Website", description: "Traffic & conversions",
+      week_label: "Week of Mar 10–16, 2025", last_updated: "2025-03-17",
+      metrics: [
+        { label: "Sessions",      week: 9210,  month: 33800, prev_month: 30200 },
+        { label: "Users",         week: 7640,  month: 28100, prev_month: 25400 },
+        { label: "Page Views",    week: 24300, month: 89000, prev_month: 80100 },
+        { label: "Avg. Duration", week: "3:42", month: "3:28", prev_month: "3:11", format: "time" },
+        { label: "Bounce Rate",   week: "38%",  month: "41%",  prev_month: "44%",  format: "rate", lower_is_better: true }
+      ]
+    }
+  };
+
+  // ── ICONS ──
+  const ICONS = {
+    LinkedIn: `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6z" stroke="#27aae1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="9" width="4" height="12" stroke="#27aae1" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><circle cx="4" cy="4" r="2" stroke="#27aae1" stroke-width="1.5"/></svg>`,
+    Meta:     `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" stroke="#070d32" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
+    Website:  `<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="10" stroke="#601d55" stroke-width="1.5"/><line x1="2" y1="12" x2="22" y2="12" stroke="#601d55" stroke-width="1.5" stroke-linecap="round"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" stroke="#601d55" stroke-width="1.5"/></svg>`
+  };
+  const ICON_CLASSES   = { LinkedIn: 'li-icon',   Meta: 'meta-icon',   Website: 'web-icon'   };
+  const ACCENT_CLASSES = { LinkedIn: 'li-accent', Meta: 'meta-accent', Website: 'web-accent' };
+  const CARD_CLASSES   = { LinkedIn: 'li-card',   Meta: 'meta-card',   Website: 'web-card'   };
+
+  // ── HELPERS ──
+  function fmt(val, prefix) {
+    prefix = prefix || '';
+    if (typeof val === 'string') return prefix + val;
+    if (val >= 1000000) return prefix + (val / 1000000).toFixed(1) + 'M';
+    if (val >= 10000)   return prefix + (val / 1000).toFixed(1) + 'K';
+    if (val >= 1000)    return prefix + val.toLocaleString();
+    return prefix + val;
+  }
+
+  function momArrow(month, prevMonth, opts) {
+    opts = opts || {};
+    if (opts.format === 'time' || opts.format === 'rate')
+      return '<span class="mom-neutral">—</span><span class="mom-label">vs last month</span>';
+    if (!prevMonth) return '';
+    var pct = (month - prevMonth) / prevMonth * 100;
+    var isPos = opts.lower_is_better ? pct < 0 : pct > 0;
+    var cls   = isPos ? 'mom-up' : (pct === 0 ? 'mom-neutral' : 'mom-down');
+    var arrow = pct > 0 ? '▲' : (pct < 0 ? '▼' : '—');
+    var lbl   = pct > 0 ? '+' + Math.abs(pct).toFixed(1) + '%' : pct.toFixed(1) + '%';
+    return '<span class="' + cls + '">' + arrow + ' ' + lbl + '</span><span class="mom-label">vs last month</span>';
+  }
+
+  function renderPlatform(key, data) {
+    var accentCls = ACCENT_CLASSES[data.platform] || '';
+    var iconCls   = ICON_CLASSES[data.platform]   || '';
+    var cardCls   = CARD_CLASSES[data.platform]   || '';
+
+    var cells = data.metrics.map(function (m) {
+      var mom      = momArrow(m.month, m.prev_month, { format: m.format, lower_is_better: m.lower_is_better });
+      var weekVal  = fmt(m.week,  m.prefix);
+      var monthVal = fmt(m.month, m.prefix);
+      return '<div class="stat-cell ' + accentCls + '">'
+        + '<div class="stat-label">' + m.label + ' <span class="stat-period period-week">WK</span></div>'
+        + '<div class="stat-value">' + weekVal + '</div>'
+        + '<div class="stat-monthly">Monthly: <span class="stat-monthly-val">' + monthVal + '</span> <span class="stat-period period-month">MTH</span></div>'
+        + '<div class="stat-mom">' + mom + '</div>'
+        + '</div>';
+    }).join('');
+
+    return '<div class="platform-card ' + cardCls + '">'
+      + '<div class="platform-header">'
+      + '<div class="platform-icon ' + iconCls + '">' + (ICONS[data.platform] || '') + '</div>'
+      + '<div><div class="platform-name">' + data.platform + '</div><div class="platform-desc">' + data.description + '</div></div>'
+      + '<div class="data-badge">' + data.last_updated + '</div>'
+      + '</div>'
+      + '<div class="stats-grid">' + cells + '</div>'
+      + '</div>';
+  }
+
+  // ── LOAD & RENDER ──
+  function loadData(key) {
+    return fetch(DATA_SOURCES[key])
+      .then(function (res) {
+        if (!res.ok) throw new Error('not found');
+        return res.json();
+      })
+      .catch(function () { return DEMO_DATA[key]; });
+  }
+
+  Promise.all(['linkedin', 'meta', 'website'].map(loadData))
+    .then(function (allData) {
+      document.getElementById('mktg-platforms').innerHTML =
+        allData.map(function (d, i) {
+          return renderPlatform(['linkedin','meta','website'][i], d);
+        }).join('');
+
+      var wl = allData[0] && allData[0].week_label;
+      if (wl) document.getElementById('mktg-week-label').textContent = wl;
+
+      var latest = allData
+        .map(function (d) { return d.last_updated; })
+        .filter(Boolean).sort().pop();
+      if (latest) document.getElementById('mktg-last-updated').textContent = 'Data last updated: ' + latest;
+    });
+})();
+</script>
